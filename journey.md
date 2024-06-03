@@ -48,5 +48,7 @@ This database structure provides a solid foundation for managing users and their
 
 - Finished prism DB migrations.
 - The word "migration" in this context refers to the process of creating and applying changes to the schema of a database, such as adding or modifying tables, columns, or relationships. This process is often referred to as "migrating" the database schema.
-- Finished generating prisma client.
 
+- Finished generating prisma client.
+- Finished installing Prisma accelerate extension.
+- Finished coding signup route. Implemented password hashing using web-crypto. Returns JWT.
