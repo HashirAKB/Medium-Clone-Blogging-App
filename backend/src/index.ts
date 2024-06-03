@@ -1,16 +1,17 @@
 import { Hono } from 'hono'
+import { PrismaClient } from '@prisma/client/edge'
+import { withAccelerate } from '@prisma/extension-accelerate'
+import { decode, sign, verify } from 'hono/jwt'
 
-const app = new Hono()
 
-// To begin with, our backend will have 4 routes
-// POST /api/v1/user/signup
-// POST /api/v1/user/signin
-// POST /api/v1/blog
-// PUT /api/v1/blog
-// GET /api/v1/blog/:id
-// GET /api/v1/blog/bulk
-// 💡
-// https://hono.dev/api/routi
+
+const app = new Hono<{
+	Bindings: {
+		DATABASE_URL: string,
+    JWT_SECRET: string
+	}
+}>();
+
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
@@ -38,9 +39,40 @@ app.get('/api/v1/blogs/', (c) => {
   return c.json(blogs);
 });
 
-app.post('/api/v1/user/signup', (c) => {
-  return c.text('signup route.');
-})
+app.post('/api/v1/user/signup', async (c) => {
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
+  const body = await c.req.json();
+  try{
+    const passwordHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body.password));
+    const user = await prisma.user.create({
+      data: 
+      {
+        name: body.username,
+        email: body.email,
+        password: new Uint8Array(await passwordHash),
+      }
+    });
+    
+    const payload = {
+      name: body.username,
+      email: body.email,
+      password: new Uint8Array(await passwordHash),
+      exp: Math.floor(Date.now() / 1000) + 60 * 10, // Token expires in 5 minutes
+    }
+    const secret = c.env.JWT_SECRET;
+    const token = await sign(payload, secret);
+    return c.json({token}); 
+  }
+  catch(e){
+    console.log(e);
+    c.status(403);
+    return c.json({
+      Error: e
+    });
+  }
+});
 
 app.post('/api/v1/user/signin', (c) => {
   return c.text('signin route.');
