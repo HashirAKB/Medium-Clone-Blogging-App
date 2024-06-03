@@ -52,3 +52,5 @@ This database structure provides a solid foundation for managing users and their
 - Finished generating prisma client.
 - Finished installing Prisma accelerate extension.
 - Finished coding signup route. Implemented password hashing using web-crypto. Returns JWT.
+- Finished signin route.
+- Finished writing a middleware that extracts the user id and passes it over to the main route.
