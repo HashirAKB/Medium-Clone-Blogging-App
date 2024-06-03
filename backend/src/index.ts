@@ -10,8 +10,29 @@ const app = new Hono<{
 	Bindings: {
 		DATABASE_URL: string,
     JWT_SECRET: string
+	},
+	Variables : {
+		userId: string
 	}
 }>();
+
+app.use('/api/v1/blog/*', async (c, next) => {
+  const jwt = c.req.header('Authorization');
+  if (!jwt) {
+		c.status(401);
+		return c.json({ error: "unauthorized" });
+	}
+  const token = jwt.split(' ')[1];
+  const secret = c.env.JWT_SECRET;
+  const payload = await verify(token, secret);
+  if(!payload){
+    c.status(401);
+		return c.json({ error: "unauthorized" });
+  }
+  console.log(payload);
+  c.set('userId', payload.id as string);
+  await next();
+})
 
 
 app.get('/', (c) => {
@@ -88,7 +109,7 @@ app.post('/api/v1/user/signin',  async (c) => {
         password:await new Uint8Array(passwordHash)
       }
     })
-    console.log(user);
+    // console.log(user);
     if(user){
       const payload = {
         id: user.id,
@@ -114,6 +135,7 @@ app.post('/api/v1/user/signin',  async (c) => {
 });
 
 app.post('/api/v1/blog', (c) => {
+  console.log(c.get('userId'));
   return c.text('Blog posted.');
 })
 
