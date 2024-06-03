@@ -12,9 +12,18 @@ const app = new Hono<{
     JWT_SECRET: string
 	},
 	Variables : {
-		userId: string
+		userId: string,
+    prisma: any
 	}
 }>();
+
+app.use('*', async (c, next) => {
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
+  c.set('prisma', prisma)
+  await next();
+})
 
 app.use('/api/v1/blog/*', async (c, next) => {
   const jwt = c.req.header('Authorization');
@@ -62,13 +71,10 @@ app.get('/api/v1/blogs/', (c) => {
 });
 
 app.post('/api/v1/user/signup', async (c) => {
-  const prisma = new PrismaClient({
-    datasourceUrl: c.env.DATABASE_URL,
-  }).$extends(withAccelerate());
   const body = await c.req.json();
   try{
     const passwordHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body.password));
-    const user = await prisma.user.create({
+    const user = await c.get('prisma').user.create({
       data: 
       {
         name: body.username,
@@ -97,13 +103,10 @@ app.post('/api/v1/user/signup', async (c) => {
 });
 
 app.post('/api/v1/user/signin',  async (c) => {
-  const prisma = new PrismaClient({
-    datasourceUrl: c.env.DATABASE_URL,
-  }).$extends(withAccelerate());
   const body = await c.req.json();
   try{
     const passwordHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body.password));
-    const user = await prisma.user.findUnique({
+    const user = await c.get('prisma').user.findUnique({
       where:{
         email:body.email,
         password:await new Uint8Array(passwordHash)
