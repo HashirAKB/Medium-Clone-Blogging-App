@@ -1,0 +1,15 @@
+{
+  "name": "common4medium",
+  "version": "0.0.1",
+  "description": "common modules and codebase that can be used in both frontend and backend of medium like blogging app.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "HashirAKB",
+  "license": "ISC",
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}
