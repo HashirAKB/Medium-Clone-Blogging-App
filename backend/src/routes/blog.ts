@@ -50,9 +50,25 @@ blogRouter.get('/all', (c) => {
     return c.json(blogs);
   });
 
-blogRouter.get('/:id', (c) => {
+blogRouter.get('/:id', async (c) => {
     const blog_id = c.req.param('id');
-    return c.text('This is blog with id:' +blog_id);
+    try{
+      const fetchedBlog = await c.get('prisma').posts.findUnique({
+        where:{
+          id:blog_id,
+          authorId: c.get('userId')
+        }
+      })
+      return c.json(fetchedBlog, 200);
+
+    }
+    catch(error){
+      console.log(error);
+      c.status(403);
+      return c.json({
+        Error: error
+      });
+    }
   });
 
 blogRouter.post('/postBlog', async (c) => {
