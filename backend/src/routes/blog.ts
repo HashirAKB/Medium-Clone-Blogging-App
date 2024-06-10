@@ -79,6 +79,30 @@ blogRouter.post('/postBlog', async (c) => {
     }
   })
   
-blogRouter.put('/updateBlog', (c) => {
-    return c.text('Blog updated.');
+blogRouter.put('/updateBlog', async (c) => {
+  console.log(c.get('userId'));
+  const body = await c.req.json();
+  console.log(body);
+  try{
+    const updatedBlog = await c.get('prisma').posts.update({
+      where:{
+        authorId: c.get('userId'),
+        id: body.id
+      },
+      data:{
+        title: body.title,
+        content: body.content,
+        authorId: c.get('userId')
+      }
+    })
+    console.log(updatedBlog);
+    return c.text(`Blog updated with Id: ${updatedBlog.id}`);
+  }
+  catch(error){
+    console.log(error);
+    c.status(403);
+    return c.json({
+      Error: error
+    });
+  }
   })
