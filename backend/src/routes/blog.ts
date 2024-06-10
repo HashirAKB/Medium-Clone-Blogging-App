@@ -67,7 +67,8 @@ blogRouter.post('/postBlog', async (c) => {
           authorId: c.get('userId')
         }
       })
-      return c.text('Blog posted.');
+      console.log(newBlog);
+      return c.text(`Blog posted with Id: ${newBlog.id}`);
     }
     catch(error){
       console.log(error);
