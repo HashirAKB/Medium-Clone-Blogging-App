@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { decode, sign, verify } from 'hono/jwt'
 import { use } from 'hono/jsx';
+import { signinInput, signupInput } from 'common4medium';
 
 export const userRouter = new Hono<{
 	Bindings: {
@@ -17,6 +18,11 @@ export const userRouter = new Hono<{
 
 userRouter.post('/signup', async (c) => {
     const body = await c.req.json();
+    const { success } = signupInput.safeParse(body);
+    if (!success){
+      c.status(400);
+      return c.json({error: "invalid input."});
+    }
     try{
       const passwordHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body.password));
       const user = await c.get('prisma').user.create({
@@ -49,6 +55,11 @@ userRouter.post('/signup', async (c) => {
 
 userRouter.post('/signin',  async (c) => {
     const body = await c.req.json();
+    const { success } = signinInput.safeParse(body);
+    if (!success){
+      c.status(400);
+      return c.json({error: "invalid input."});
+    }
     try{
       const passwordHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body.password));
       const user = await c.get('prisma').user.findUnique({
